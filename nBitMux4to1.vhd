@@ -4,7 +4,7 @@ USE ieee.std_logic_1164.all ;
 ENTITY nBitMux4to1 IS
   GENERIC (n: INTEGER := 4);
   PORT (  s0, s1                  : IN STD_LOGIC;
-          x0, x1, x2, x3          : IN STD_LOGIC_VECTOR(n-1 down to 0);
+          x0, x1, x2, x3          : IN STD_LOGIC_VECTOR(n-1 downto 0);
           y                       : OUT STD_LOGIC_VECTOR(n-1 downto 0));
   END nBitMux4to1; 
 
