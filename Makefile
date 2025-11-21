@@ -2,12 +2,12 @@ OBJ_DIR = obj
 ENTITY_DIR = entities
 OUTPUT_DIR = output
 TESTBENCH_DIR = tb
-ENTITY_NAME = nBitMux8to1
+ENTITY_NAME = transmitterFSM
 
-VHDL_SOURCES = oneBitMux2to1.vhd oneBitMux8to1.vhd nBitMux8to1.vhd
-#VHDL_SOURCES = enARdFF_2.vhd nBitLeftShiftRegister.vhd
-TESTBENCHES = $(TESTBENCH_DIR)/tb_nBitMux8to1.vhd
-TOP_ENTITY = tb_nBitMux8to1
+#VHDL_SOURCES = oneBitMux2to1.vhd oneBitMux8to1.vhd nBitMux8to1.vhd
+VHDL_SOURCES = enARdFF_2.vhd transmitterFSMControl.vhd nBitComparator.vhd nBitCounter.vhd oneBitMux2to1.vhd transmitterFSM.vhd oneBitComparator.vhd nBitRightShiftRegister.vhd
+TESTBENCHES = $(TESTBENCH_DIR)/tb_transmitterFSM.vhd
+TOP_ENTITY = tb_transmitterFSM
 
 all: run
 
