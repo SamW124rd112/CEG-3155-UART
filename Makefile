@@ -2,12 +2,13 @@ OBJ_DIR = obj
 ENTITY_DIR = entities
 OUTPUT_DIR = output
 TESTBENCH_DIR = tb
-ENTITY_NAME = transmitterFSM
+ENTITY_NAME = receiverFSM
 
 #VHDL_SOURCES = oneBitMux2to1.vhd oneBitMux8to1.vhd nBitMux8to1.vhd
-VHDL_SOURCES = enARdFF_2.vhd transmitterFSMControl.vhd nBitComparator.vhd nBitCounter.vhd oneBitMux2to1.vhd transmitterFSM.vhd oneBitComparator.vhd nBitRightShiftRegister.vhd
-TESTBENCHES = $(TESTBENCH_DIR)/tb_transmitterFSM.vhd
-TOP_ENTITY = tb_transmitterFSM
+#VHDL_SOURCES = enARdFF_2.vhd tFF_2.vhd baudRateGen.vhd nBitComparator.vhd nBitCounter.vhd oneBitMux8to1.vhd dFF_2.vhd oneBitComparator.vhd oneBitMux2to1.vhd 
+VHDL_SOURCES = enARdFF_2.vhd nBitComparator.vhd oneBitComparator.vhd receiverFSMControl.vhd nBitRightShiftRegister.vhd nBitCounter.vhd counter.vhd receiverFSM.vhd nBitRegister.vhd oneBitMux2to1.vhd
+TESTBENCHES = $(TESTBENCH_DIR)/tb_receiverFSM.vhd
+TOP_ENTITY = tb_receiverFSM
 
 all: run
 
@@ -22,7 +23,7 @@ elaborate: analyze
 
 run: elaborate
 	# Run the simulation using the executable in ENTITY_DIR
-	$(ENTITY_DIR)/$(TOP_ENTITY) --vcd=$(OUTPUT_DIR)/$(ENTITY_NAME).vcd --stop-time=500ns
+	$(ENTITY_DIR)/$(TOP_ENTITY) --vcd=$(OUTPUT_DIR)/$(ENTITY_NAME).vcd --stop-time=100us
 
 view:
 	gtkwave $(OUTPUT_DIR)/$(ENTITY_NAME).vcd &
@@ -30,5 +31,4 @@ view:
 
 clean:
 	ghdl --clean --workdir=$(OBJ_DIR)
-	rm -rf $(ENTITY_DIR)/* #$(OUTPUT_DIR)/$(ENTITY_NAME).vcd
-
+	rm -rf $(ENTITY_DIR)/* #$(OUTPUT_DIR)/$(ENTITY_NAME).vcd 
