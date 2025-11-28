@@ -28,6 +28,8 @@ run: elaborate
 view:
 	gtkwave $(OUTPUT_DIR)/$(ENTITY_NAME).vcd &
 
+surfer:
+	surfer $(OUTPUT_DIR)/$(ENTITY_NAME).vcd &
 
 clean:
 	ghdl --clean --workdir=$(OBJ_DIR)
