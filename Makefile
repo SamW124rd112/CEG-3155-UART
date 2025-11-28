@@ -3,12 +3,14 @@ ENTITY_DIR = entities
 OUTPUT_DIR = output
 TESTBENCH_DIR = tb
 ENTITY_NAME = receiverFSM
+TEST_NAME = tb_receiverFSM
 
 #VHDL_SOURCES = oneBitMux2to1.vhd oneBitMux8to1.vhd nBitMux8to1.vhd
-#VHDL_SOURCES = enARdFF_2.vhd tFF_2.vhd baudRateGen.vhd nBitComparator.vhd nBitCounter.vhd oneBitMux8to1.vhd dFF_2.vhd oneBitComparator.vhd oneBitMux2to1.vhd 
-VHDL_SOURCES = enARdFF_2.vhd nBitComparator.vhd oneBitComparator.vhd receiverFSMControl.vhd nBitRightShiftRegister.vhd nBitCounter.vhd counter.vhd receiverFSM.vhd nBitRegister.vhd oneBitMux2to1.vhd
-TESTBENCHES = $(TESTBENCH_DIR)/tb_receiverFSM.vhd
-TOP_ENTITY = tb_receiverFSM
+#VHDL_SOURCES = enARdFF_2.vhd tFF_2.vhd baudRateGen.vhd nBitComparator.vhd nBitCounter.vhd oneBitMux8to1.vhd dFF_2.vhd oneBitComparator.vhd oneBitMux2to1.vhd
+#VHDL_SOURCES = enARdFF_2.vhd nBitComparator.vhd oneBitComparator.vhd receiverFSMControl.vhd nBitRightShiftRegister.vhd nBitCounter.vhd counter.vhd receiverFSM.vhd nBitRegister.vhd oneBitMux2to1.vhd
+VHDL_SOURCES = $(wildcard *.vhd)
+TESTBENCHES = $(TESTBENCH_DIR)/$(TEST_NAME).vhd
+TOP_ENTITY = $(TEST_NAME)
 
 all: run
 
