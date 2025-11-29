@@ -97,6 +97,8 @@ ARCHITECTURE structural OF transmitterFSM IS
 BEGIN
   eight     <= "0111"; 
   TSRF      <= loadEN;
+  
+  counterEN <= resetCount OR shiftEN;
 
   delayShift: enARdFF_2
     PORT MAP(
