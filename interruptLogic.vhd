@@ -3,10 +3,8 @@ USE ieee.std_logic_1164.ALL;
 
 ENTITY interruptLogic IS
     PORT(
-        TIE     : IN  STD_LOGIC;
-        RIE     : IN  STD_LOGIC;
-        TDRE    : IN  STD_LOGIC;
-        RDRF    : IN  STD_LOGIC;
+        TIE, RIE     : IN  STD_LOGIC;
+        TDRE, RDRF    : IN  STD_LOGIC;
         OE      : IN  STD_LOGIC;
         IRQ     : OUT STD_LOGIC
     );

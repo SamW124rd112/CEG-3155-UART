@@ -2,8 +2,8 @@ OBJ_DIR = obj
 ENTITY_DIR = entities
 OUTPUT_DIR = output
 TESTBENCH_DIR = tb
-ENTITY_NAME = receiverFSM
-TEST_NAME = tb_receiverFSM
+ENTITY_NAME = uartFSM
+TEST_NAME = tb_uartFSM
 
 #VHDL_SOURCES = oneBitMux2to1.vhd oneBitMux8to1.vhd nBitMux8to1.vhd
 #VHDL_SOURCES = enARdFF_2.vhd tFF_2.vhd baudRateGen.vhd nBitComparator.vhd nBitCounter.vhd oneBitMux8to1.vhd dFF_2.vhd oneBitComparator.vhd oneBitMux2to1.vhd
@@ -25,7 +25,7 @@ elaborate: analyze
 
 run: elaborate
 	# Run the simulation using the executable in ENTITY_DIR
-	$(ENTITY_DIR)/$(TOP_ENTITY) --vcd=$(OUTPUT_DIR)/$(ENTITY_NAME).vcd --stop-time=100us
+	$(ENTITY_DIR)/$(TOP_ENTITY) --vcd=$(OUTPUT_DIR)/$(ENTITY_NAME).vcd --stop-time=100ms
 
 view:
 	gtkwave $(OUTPUT_DIR)/$(ENTITY_NAME).vcd &

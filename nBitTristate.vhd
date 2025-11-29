@@ -12,7 +12,7 @@ END nBitTristate;
 
 ARCHITECTURE structural OF nBitTristate IS
 
-    COMPONENT tristate_1bit
+    COMPONENT oneBitTristate
         PORT(
             enable  : IN  STD_LOGIC;
             input   : IN  STD_LOGIC;
@@ -23,7 +23,7 @@ ARCHITECTURE structural OF nBitTristate IS
 BEGIN
 
     GEN_TRI: FOR i IN 0 TO n-1 GENERATE
-        tri_bit: tristate_1bit
+        tri_bit: oneBitTristate
             PORT MAP(
                 enable => enable,
                 input  => input(i),

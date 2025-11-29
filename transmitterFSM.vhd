@@ -13,6 +13,7 @@ ENTITY transmitterFSM IS
         tdrData             : IN STD_LOGIC_VECTOR(dataLen-1 downto 0);
         TDRE                : IN STD_LOGIC;
         loadFlag            : OUT STD_LOGIC;
+        doneFlag            : OUT STD_LOGIC;
         shiftFlag           : OUT STD_LOGIC;
         o_TX                : OUT STD_LOGIC;
         stateDebug          : OUT STD_LOGIC_VECTOR(2 downto 0));
@@ -27,6 +28,7 @@ ARCHITECTURE structural OF transmitterFSM IS
         G_Reset             : IN  STD_LOGIC;
         resetCount          : OUT STD_LOGIC;
         shiftEN             : OUT STD_LOGIC;
+        doneEN              : OUT STD_LOGIC;
         loadEN              : OUT STD_LOGIC;
         TXOut               : OUT STD_LOGIC;
         stateOut            : OUT STD_LOGIC_VECTOR(2 downto 0));
@@ -77,13 +79,14 @@ ARCHITECTURE structural OF transmitterFSM IS
   END COMPONENT;
 
   SIGNAL resetCount               : STD_LOGIC;
-  SIGNAL shiftEN, loadEN          : STD_LOGIC;
+  SIGNAL shiftEN, loadEN, doneEN  : STD_LOGIC;
   SIGNAL TXOut, C8Flag, TSRF, TXD : STD_LOGIC;
   SIGNAL tsrData                  : STD_LOGIC_VECTOR(dataLen-1 downto 0);
   SIGNAL eight                    : STD_LOGIC_VECTOR(counterLen-1 downto 0);
   SIGNAL dataCount                : STD_LOGIC_VECTOR(counterLen-1 downto 0);
   SIGNAL tsrEnable                : STD_LOGIC;
   SIGNAL shiftEN_delayed          : STD_LOGIC;
+  SIGNAL counterEN                : STD_LOGIC;
   
   -- New signals for structural start bit fix
   SIGNAL internalState  : STD_LOGIC_VECTOR(2 downto 0);
@@ -117,6 +120,7 @@ BEGIN
         G_Reset     => GReset,
         resetCount  => resetCount,
         shiftEN     => shiftEN,
+        doneEN      => doneEN,
         loadEN      => loadEN,
         TXOut       => TXOut,
         stateOut    => internalState
@@ -165,7 +169,7 @@ BEGIN
     PORT MAP(
       i_resetBar    => GReset,
       i_resetCount  => resetCount,
-      i_load        => shiftEN,
+      i_load        => counterEN,
       i_clock       => BaudClk,
       o_Value       => dataCount
     );
@@ -182,6 +186,7 @@ BEGIN
 
   loadFlag  <= loadEN;
   shiftFlag <= shiftEN;
+  doneFlag  <= doneEN;
   stateDebug <= internalState;
 
 END structural;
