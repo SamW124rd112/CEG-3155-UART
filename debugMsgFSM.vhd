@@ -40,14 +40,21 @@ ARCHITECTURE structural OF debugMsgFSM IS
             stateOut     : OUT STD_LOGIC_VECTOR(2 downto 0));
     END COMPONENT;
 
-    COMPONENT counter3Bit
+    COMPONENT nBitCounter
+        GENERIC(n : INTEGER := 4);
         PORT(
-            GClock     : IN  STD_LOGIC;
-            GReset     : IN  STD_LOGIC;
-            i_reset    : IN  STD_LOGIC;
-            i_enable   : IN  STD_LOGIC;
-            o_count    : OUT STD_LOGIC_VECTOR(2 downto 0);
-            o_maxReach : OUT STD_LOGIC);
+            i_resetBar   : IN  STD_LOGIC;
+            i_resetCount : IN  STD_LOGIC;
+            i_load       : IN  STD_LOGIC;
+            i_clock      : IN  STD_LOGIC;
+            o_Value      : OUT STD_LOGIC_VECTOR(n-1 downto 0));
+    END COMPONENT;
+
+    COMPONENT nBitComparator
+        GENERIC(n : INTEGER := 4);
+        PORT(
+            i_Ai, i_Bi       : IN  STD_LOGIC_VECTOR(n-1 downto 0);
+            o_GT, o_LT, o_EQ : OUT STD_LOGIC);
     END COMPONENT;
 
     COMPONENT characterROM
@@ -63,8 +70,17 @@ ARCHITECTURE structural OF debugMsgFSM IS
     SIGNAL charIndex_int    : STD_LOGIC_VECTOR(2 downto 0);
     SIGNAL msgDone_int      : STD_LOGIC;
     SIGNAL addrBit0_int     : STD_LOGIC;
+    
+    -- Counter reset: from FSM OR when count reaches 5 (wrap)
+    SIGNAL counterResetCombined : STD_LOGIC;
+    SIGNAL countIs5             : STD_LOGIC;
+    
+    -- Constant for comparison
+    SIGNAL five : STD_LOGIC_VECTOR(2 downto 0);
 
 BEGIN
+
+    five <= "101";  -- Value 5 for comparison
 
     ---------------------------------------------------------------------------
     -- State Change Detector
@@ -96,17 +112,38 @@ BEGIN
         );
 
     ---------------------------------------------------------------------------
-    -- Character Counter (0-5)
+    -- Character Counter (0-5, wraps using comparator)
+    -- Uses existing nBitCounter with n=3
     ---------------------------------------------------------------------------
-    charCounter: counter3Bit
+    
+    -- Reset counter when FSM says to OR when we've reached 5 and are counting
+    counterResetCombined <= counterReset_int OR (countIs5 AND counterEn_int);
+    
+    charCounter: nBitCounter
+        GENERIC MAP(n => 3)
         PORT MAP(
-            GClock     => GClock,
-            GReset     => GReset,
-            i_reset    => counterReset_int,
-            i_enable   => counterEn_int,
-            o_count    => charIndex_int,
-            o_maxReach => msgDone_int
+            i_resetBar   => GReset,
+            i_resetCount => counterResetCombined,
+            i_load       => counterEn_int,
+            i_clock      => GClock,
+            o_Value      => charIndex_int
         );
+
+    ---------------------------------------------------------------------------
+    -- Comparator to detect count = 5
+    ---------------------------------------------------------------------------
+    countComparator: nBitComparator
+        GENERIC MAP(n => 3)
+        PORT MAP(
+            i_Ai => charIndex_int,
+            i_Bi => five,
+            o_GT => open,
+            o_LT => open,
+            o_EQ => countIs5
+        );
+
+    -- Message is done when count reaches 5
+    msgDone_int <= countIs5;
 
     ---------------------------------------------------------------------------
     -- Character ROM

@@ -34,7 +34,7 @@ ARCHITECTURE structural OF debugMsgFSMControl IS
     SIGNAL n_y2, n_y1, n_y0 : STD_LOGIC;
     SIGNAL d2, d1, d0       : STD_LOGIC;
 
-    -- State decode signals
+    -- State decode signals (active high)
     SIGNAL sIDLE      : STD_LOGIC;  -- 000
     SIGNAL sWAIT_TDRE : STD_LOGIC;  -- 001
     SIGNAL sWRITE_TDR : STD_LOGIC;  -- 010
@@ -42,12 +42,7 @@ ARCHITECTURE structural OF debugMsgFSMControl IS
     SIGNAL sDONE      : STD_LOGIC;  -- 100
 
     -- Intermediate signals
-    SIGNAL msgDone_n   : STD_LOGIC;
-    SIGNAL trans_to_wait : STD_LOGIC;
-    SIGNAL trans_to_write : STD_LOGIC;
-    SIGNAL trans_to_next : STD_LOGIC;
-    SIGNAL trans_to_done : STD_LOGIC;
-    SIGNAL stay_in_wait : STD_LOGIC;
+    SIGNAL msgDone_n : STD_LOGIC;
 
 BEGIN
 
@@ -86,47 +81,51 @@ BEGIN
 
     ---------------------------------------------------------------------------
     -- State Decode (one-hot from binary)
+    -- NEW ENCODING:
+    --   IDLE      = 000
+    --   WAIT_TDRE = 001
+    --   WRITE_TDR = 010
+    --   NEXT_CHAR = 011
+    --   DONE      = 100
     ---------------------------------------------------------------------------
     sIDLE      <= n_y2 AND n_y1 AND n_y0;  -- 000
     sWAIT_TDRE <= n_y2 AND n_y1 AND y0;    -- 001
-    sNEXT_CHAR <= n_y2 AND y1 AND n_y0;    -- 010
-    sWRITE_TDR <= n_y2 AND y1 AND y0;      -- 011
+    sWRITE_TDR <= n_y2 AND y1 AND n_y0;    -- 010
+    sNEXT_CHAR <= n_y2 AND y1 AND y0;      -- 011
     sDONE      <= y2 AND n_y1 AND n_y0;    -- 100
 
-    ---------------------------------------------------------------------------
-    -- Transition Logic
-    ---------------------------------------------------------------------------
     msgDone_n <= NOT msgDone;
-
-    -- Transitions:
-    -- IDLE -> WAIT_TDRE when stateChanged
-    trans_to_wait <= (sIDLE AND stateChanged) OR (sNEXT_CHAR AND msgDone_n);
-
-    -- WAIT_TDRE -> WRITE_TDR when TDRE=1
-    trans_to_write <= sWAIT_TDRE AND TDRE;
-
-    -- WRITE_TDR -> NEXT_CHAR always
-    trans_to_next <= sWRITE_TDR;
-
-    -- NEXT_CHAR -> DONE when msgDone
-    trans_to_done <= sNEXT_CHAR AND msgDone;
-
-    -- Stay in WAIT_TDRE when TDRE=0
-    stay_in_wait <= sWAIT_TDRE AND (NOT TDRE);
 
     ---------------------------------------------------------------------------
     -- Next State Logic
-    -- State encoding: IDLE=000, WAIT_TDRE=001, NEXT_CHAR=010, WRITE_TDR=011, DONE=100
+    -- 
+    -- State Transitions:
+    --   IDLE(000)      -> WAIT_TDRE(001) when stateChanged
+    --   WAIT_TDRE(001) -> WRITE_TDR(010) when TDRE=1
+    --   WRITE_TDR(010) -> NEXT_CHAR(011) always
+    --   NEXT_CHAR(011) -> DONE(100)      when msgDone=1
+    --   NEXT_CHAR(011) -> WAIT_TDRE(001) when msgDone=0
+    --   DONE(100)      -> IDLE(000)      always
     ---------------------------------------------------------------------------
     
-    -- d2: Set for DONE state
-    d2 <= trans_to_done;
+    -- d2: Goes high only for DONE state (100)
+    --     NEXT_CHAR(011) + msgDone -> DONE(100)
+    d2 <= sNEXT_CHAR AND msgDone;
 
-    -- d1: Set for NEXT_CHAR (010) or WRITE_TDR (011)
-    d1 <= trans_to_next OR trans_to_write;
+    -- d1: High for WRITE_TDR(010) and NEXT_CHAR(011)
+    --     WAIT_TDRE(001) + TDRE -> WRITE_TDR(010)
+    --     WRITE_TDR(010) -> NEXT_CHAR(011)
+    d1 <= (sWAIT_TDRE AND TDRE) OR sWRITE_TDR;
 
-    -- d0: Set for WAIT_TDRE (001) or WRITE_TDR (011)
-    d0 <= trans_to_wait OR stay_in_wait OR trans_to_write;
+    -- d0: High for WAIT_TDRE(001) and NEXT_CHAR(011)
+    --     IDLE(000) + stateChanged -> WAIT_TDRE(001)
+    --     WAIT_TDRE(001) + NOT TDRE -> WAIT_TDRE(001) (stay)
+    --     WRITE_TDR(010) -> NEXT_CHAR(011)
+    --     NEXT_CHAR(011) + NOT msgDone -> WAIT_TDRE(001)
+    d0 <= (sIDLE AND stateChanged) OR 
+          (sWAIT_TDRE AND (NOT TDRE)) OR 
+          sWRITE_TDR OR 
+          (sNEXT_CHAR AND msgDone_n);
 
     ---------------------------------------------------------------------------
     -- Output Logic
@@ -135,13 +134,13 @@ BEGIN
     -- Counter reset in IDLE or DONE
     counterReset <= sIDLE OR sDONE;
 
-    -- Counter enable in NEXT_CHAR
+    -- Counter enable in NEXT_CHAR (increment after writing each char)
     counterEn <= sNEXT_CHAR;
 
     -- UART select when accessing UART (WAIT_TDRE or WRITE_TDR)
     uartSelect <= sWAIT_TDRE OR sWRITE_TDR;
 
-    -- R/W: 1=Read (for SCSR), 0=Write (for TDR)
+    -- R/W: 1=Read (for SCSR in WAIT_TDRE), 0=Write (for TDR in WRITE_TDR)
     uartRW <= sWAIT_TDRE;
 
     -- Address bit 0: 1 for SCSR (addr=01), 0 for TDR (addr=00)

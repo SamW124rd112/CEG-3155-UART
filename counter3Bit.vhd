@@ -33,30 +33,28 @@ ARCHITECTURE structural OF counter3Bit IS
     SIGNAL n_q2, n_q1, n_q0 : STD_LOGIC;
     SIGNAL d2, d1, d0       : STD_LOGIC;
     SIGNAL next2, next1, next0 : STD_LOGIC;
-    SIGNAL mux_out2, mux_out1, mux_out0 : STD_LOGIC;
-    SIGNAL enable_or_reset  : STD_LOGIC;
+    SIGNAL ff_enable        : STD_LOGIC;
 
     -- For detecting count = 5 (binary 101)
     SIGNAL is_five : STD_LOGIC;
-
-    -- For wrap-around: when count=5, next is 0
-    SIGNAL wrap : STD_LOGIC;
-    SIGNAL wrap_n : STD_LOGIC;
+    
+    -- Reset OR wrap condition
+    SIGNAL do_reset : STD_LOGIC;
 
 BEGIN
 
     -- Detect when count = 5 (101)
-    is_five <= q2 AND n_q1 AND q0;
-    wrap <= is_five AND i_enable;
-    wrap_n <= NOT wrap;
+    is_five <= q2 AND (NOT q1) AND q0;
+    
+    -- Reset counter when i_reset=1 OR when at 5 and enabled (wrap)
+    do_reset <= i_reset OR (is_five AND i_enable);
 
     ---------------------------------------------------------------------------
-    -- Next count logic (increment)
-    -- 000 -> 001 -> 010 -> 011 -> 100 -> 101 -> 000 (wrap)
+    -- Next count logic (standard binary increment)
     ---------------------------------------------------------------------------
     
     -- Bit 0: toggles every count
-    next0 <= n_q0;
+    next0 <= NOT q0;
 
     -- Bit 1: toggles when bit 0 is 1
     next1 <= q1 XOR q0;
@@ -65,59 +63,34 @@ BEGIN
     next2 <= q2 XOR (q1 AND q0);
 
     ---------------------------------------------------------------------------
-    -- Mux for reset: select 0 when reset or wrap, else next value
+    -- Mux: select 0 when reset/wrap, else next value
     ---------------------------------------------------------------------------
-    mux_reset0: oneBitMux2to1
+    mux_d0: oneBitMux2to1
         PORT MAP(
-            s  => i_reset,
+            s  => do_reset,
             x0 => next0,
-            x1 => '0',
-            y  => mux_out0
-        );
-
-    mux_reset1: oneBitMux2to1
-        PORT MAP(
-            s  => i_reset,
-            x0 => next1,
-            x1 => '0',
-            y  => mux_out1
-        );
-
-    mux_reset2: oneBitMux2to1
-        PORT MAP(
-            s  => i_reset,
-            x0 => next2,
-            x1 => '0',
-            y  => mux_out2
-        );
-
-    -- Mux for wrap-around
-    mux_wrap0: oneBitMux2to1
-        PORT MAP(
-            s  => wrap,
-            x0 => mux_out0,
             x1 => '0',
             y  => d0
         );
 
-    mux_wrap1: oneBitMux2to1
+    mux_d1: oneBitMux2to1
         PORT MAP(
-            s  => wrap,
-            x0 => mux_out1,
+            s  => do_reset,
+            x0 => next1,
             x1 => '0',
             y  => d1
         );
 
-    mux_wrap2: oneBitMux2to1
+    mux_d2: oneBitMux2to1
         PORT MAP(
-            s  => wrap,
-            x0 => mux_out2,
+            s  => do_reset,
+            x0 => next2,
             x1 => '0',
             y  => d2
         );
 
-    -- Enable for flip-flops
-    enable_or_reset <= i_enable OR i_reset;
+    -- Enable for flip-flops: count when enabled OR reset when reset
+    ff_enable <= i_enable OR i_reset;
 
     ---------------------------------------------------------------------------
     -- State Flip-Flops
@@ -126,7 +99,7 @@ BEGIN
         PORT MAP(
             i_resetBar => GReset,
             i_d        => d0,
-            i_enable   => enable_or_reset,
+            i_enable   => ff_enable,
             i_clock    => GClock,
             o_q        => q0,
             o_qBar     => n_q0
@@ -136,7 +109,7 @@ BEGIN
         PORT MAP(
             i_resetBar => GReset,
             i_d        => d1,
-            i_enable   => enable_or_reset,
+            i_enable   => ff_enable,
             i_clock    => GClock,
             o_q        => q1,
             o_qBar     => n_q1
@@ -146,7 +119,7 @@ BEGIN
         PORT MAP(
             i_resetBar => GReset,
             i_d        => d2,
-            i_enable   => enable_or_reset,
+            i_enable   => ff_enable,
             i_clock    => GClock,
             o_q        => q2,
             o_qBar     => n_q2
