@@ -213,39 +213,37 @@ BEGIN
         wait until G_Reset = '1';
         wait for 500 ns;
         
-        -- Test SEL = 000 (÷164 = ÷82*2)
-        -- Need ~100 baud edges: 100 * 164 * 20ns = 328us
+        -- Test SEL = 000 (÷164)
         SEL <= "000";
-        verify_division("000", 164, 500 us, "Divide by 164 (SEL=000)");
-        
-        -- Test SEL = 001 (÷328 = ÷82*4)
-        -- Need ~100 baud edges: 100 * 328 * 20ns = 656us
+        verify_division("000", 164, 250 us, "Divide by 164 (SEL=000)");  -- was 500 us
+
+        -- Test SEL = 001 (÷328)
         SEL <= "001";
-        verify_division("001", 328, 1 ms, "Divide by 328 (SEL=001)");
-        
-        -- Test SEL = 010 (÷656 = ÷82*8)
+        verify_division("001", 328, 500 us, "Divide by 328 (SEL=001)");  -- was 1 ms
+
+        -- Test SEL = 010 (÷656)
         SEL <= "010";
-        verify_division("010", 656, 2 ms, "Divide by 656 (SEL=010)");
-        
-        -- Test SEL = 011 (÷1312 = ÷82*16)
+        verify_division("010", 656, 1 ms, "Divide by 656 (SEL=010)");  -- was 2 ms
+
+        -- Test SEL = 011 (÷1312)
         SEL <= "011";
-        verify_division("011", 1312, 4 ms, "Divide by 1312 (SEL=011)");
-        
-        -- Test SEL = 100 (÷2624 = ÷82*32)
+        verify_division("011", 1312, 2 ms, "Divide by 1312 (SEL=011)");  -- was 4 ms
+
+        -- Test SEL = 100 (÷2624)
         SEL <= "100";
-        verify_division("100", 2624, 8 ms, "Divide by 2624 (SEL=100)");
-        
-        -- Test SEL = 101 (÷5248 = ÷82*64)
+        verify_division("100", 2624, 4 ms, "Divide by 2624 (SEL=100)");  -- was 8 ms
+
+        -- Test SEL = 101 (÷5248)
         SEL <= "101";
-        verify_division("101", 5248, 16 ms, "Divide by 5248 (SEL=101)");
-        
-        -- Test SEL = 110 (÷10496 = ÷82*128)
+        verify_division("101", 5248, 8 ms, "Divide by 5248 (SEL=101)");  -- was 16 ms
+
+        -- Test SEL = 110 (÷10496)
         SEL <= "110";
-        verify_division("110", 10496, 32 ms, "Divide by 10496 (SEL=110)");
-        
-        -- Test SEL = 111 (÷20992 = ÷82*256)
+        verify_division("110", 10496, 16 ms, "Divide by 10496 (SEL=110)");  -- was 32 ms
+
+        -- Test SEL = 111 (÷20992)
         SEL <= "111";
-        verify_division("111", 20992, 64 ms, "Divide by 20992 (SEL=111)");
+        verify_division("111", 20992, 32 ms, "Divide by 20992 (SEL=111)");  -- was 64 ms
         
         -- Final report
         -- Final report

@@ -75,7 +75,7 @@ ARCHITECTURE structural OF baudRateGen IS
 BEGIN
 
     t_high          <= '1';
-    compare_value_40 <= "100111";  -- 39 in binary (count 0-39 = 40 states)
+    compare_value_40 <= "101000";  -- 40 in binary (count 0-40 = 41 states)
     compare_value_5  <= "100";     -- 4 in binary (count 0-4 = 5 states)
 
     ---------------------------------------------------------------------------

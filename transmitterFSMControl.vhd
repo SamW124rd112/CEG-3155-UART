@@ -81,21 +81,24 @@ BEGIN
   sD <= n_y2 and y1 and y0;      -- 011
   sE <= y2 and n_y1 and n_y0;    -- 100
 
-  -- Transition logic (w=1 means transition, w=0 means stay)
-  w <= ((sA and not(TDRE))
-       or (sB and TSRF)
-       or (sC)
-       or (sD and C8)
-       or (sE and TDRE));
+  -- MODIFIED: Always transition from E (don't wait for TDRE)
+w <= ((sA and not(TDRE))
+    or (sB and TSRF)
+    or sC
+    or (sD and C8)
+    or sE);  -- CHANGED: was (sE and TDRE)
 
-  n_w <= not(w);
+n_w <= not(w);
 
-  -- Next state logic (CORRECTED)
-  -- State transitions when w=1:
-  -- A(000)→B(001), B(001)→C(010), C(010)→D(011), D(011)→E(100), E(100)→A(000)
-  i_d2 <= (w and y1 and y0) or (n_w and y2);
-  i_d1 <= (w and y0 and n_y1) or (y1 and n_y0) or (n_w and y1);
-  i_d0 <= n_y2 and ((w and n_y0) or (n_w and y0));
+-- MODIFIED i_d0: Add E→B transition when TDRE=0
+-- States: A=000, B=001, C=010, D=011, E=100
+-- From E: if TDRE=1 go to A(000), if TDRE=0 go to B(001)
+i_d0 <= (n_y2 and ((w and n_y0) or (n_w and y0))) 
+        or (sE and (not TDRE));  -- NEW TERM: E→B when TDRE=0
+
+-- i_d2 and i_d1 remain unchanged
+i_d2 <= (w and y1 and y0) or (n_w and y2);
+i_d1 <= (w and y0 and n_y1) or (y1 and n_y0) or (n_w and y1);
 
   -- Output logic
   shiftEN <= sD;

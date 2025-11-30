@@ -50,7 +50,7 @@ BEGIN
     -- setTDRE forces tdre_n to 0 (TDRE=1)
     -- clrTDRE forces tdre_n to 1 (TDRE=0)
     -- Otherwise hold current value
-    tdre_n_next <= (NOT setTDRE) AND (tdre_n_int OR clrTDRE);
+    tdre_n_next <= clrTDRE OR ((NOT setTDRE) AND tdre_n_int);
     
     tdre_n_ff: enARdFF_2
         PORT MAP(

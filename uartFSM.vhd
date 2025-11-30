@@ -212,7 +212,7 @@ BEGIN
   TIE     <= SCCR_Data(7);
   RIE     <= SCCR_Data(6);
   
-  setTDRE <= TX_doneFlag;
+  setTDRE <= TX_loadFlag;
 
   statusReg: statusRegister
       PORT MAP(
