@@ -3,6 +3,7 @@ USE ieee.std_logic_1164.ALL;
 
 ENTITY debugTrafficLightSystem IS
     PORT(
+        TLClk    : IN  STD_LOGIC;
         GClock   : IN  STD_LOGIC;
         GReset   : IN  STD_LOGIC;
         SSCS     : IN  STD_LOGIC;
@@ -19,6 +20,7 @@ END debugTrafficLightSystem;
 
 ARCHITECTURE structural OF debugTrafficLightSystem IS
 
+
     COMPONENT trafficLightController
         PORT(
             MSC, SSC    : IN  STD_LOGIC_VECTOR(3 downto 0);
@@ -28,6 +30,14 @@ ARCHITECTURE structural OF debugTrafficLightSystem IS
             MSTL, SSTL  : OUT STD_LOGIC_VECTOR(2 downto 0);
             BCD1, BCD2  : OUT STD_LOGIC_VECTOR(3 downto 0);
             TL_State    : OUT STD_LOGIC_VECTOR(1 downto 0));
+    END COMPONENT;
+
+    COMPONENT tlStateSynchronizer
+        PORT(
+            GClock      : IN  STD_LOGIC;
+            GReset      : IN  STD_LOGIC;
+            asyncState  : IN  STD_LOGIC_VECTOR(1 downto 0);
+            syncState   : OUT STD_LOGIC_VECTOR(1 downto 0));
     END COMPONENT;
 
     COMPONENT debugMsgFSM
@@ -67,8 +77,17 @@ ARCHITECTURE structural OF debugTrafficLightSystem IS
             output : OUT STD_LOGIC_VECTOR(n-1 downto 0));
     END COMPONENT;
 
-    -- Internal signals
-    SIGNAL tlState_int    : STD_LOGIC_VECTOR(1 downto 0);
+    COMPONENT resetToOneLatch
+        PORT(
+            GClock      : IN  STD_LOGIC;
+            GReset      : IN  STD_LOGIC;
+            enable      : IN  STD_LOGIC;
+            dataIn      : IN  STD_LOGIC;
+            dataOut     : OUT STD_LOGIC);
+    END COMPONENT;
+
+    SIGNAL tlState_async  : STD_LOGIC_VECTOR(1 downto 0);
+    SIGNAL tlState_sync   : STD_LOGIC_VECTOR(1 downto 0);
     SIGNAL uartSelect_int : STD_LOGIC;
     SIGNAL uartAddr_int   : STD_LOGIC_VECTOR(1 downto 0);
     SIGNAL uartRW_int     : STD_LOGIC;
@@ -76,35 +95,40 @@ ARCHITECTURE structural OF debugTrafficLightSystem IS
     SIGNAL dataOut_int    : STD_LOGIC_VECTOR(7 downto 0);
     SIGNAL tdreStatus_int : STD_LOGIC;
     SIGNAL writeEnable    : STD_LOGIC;
-    SIGNAL writeEnable_n  : STD_LOGIC;
+
+    SIGNAL scsr_valid     : STD_LOGIC;
+    SIGNAL addr_is_01     : STD_LOGIC;
+    SIGNAL addr1_n        : STD_LOGIC;
 
 BEGIN
 
-    ---------------------------------------------------------------------------
-    -- Traffic Light Controller
-    ---------------------------------------------------------------------------
     tlc: trafficLightController
         PORT MAP(
             MSC      => MSC,
             SSC      => SSC,
             SSCS     => SSCS,
-            G_Clock  => GClock,
+            G_Clock  => TLClk,
             G_Reset  => GReset,
             MSTL     => MSTL,
             SSTL     => SSTL,
             BCD1     => BCD1,
             BCD2     => BCD2,
-            TL_State => tlState_int
+            TL_State => tlState_async
         );
 
-    ---------------------------------------------------------------------------
-    -- Debug Message FSM
-    ---------------------------------------------------------------------------
+    tlSync: tlStateSynchronizer
+        PORT MAP(
+            GClock     => GClock,
+            GReset     => GReset,
+            asyncState => tlState_async,
+            syncState  => tlState_sync
+        );
+
     msgFsm: debugMsgFSM
         PORT MAP(
             GClock      => GClock,
             GReset      => GReset,
-            TL_State    => tlState_int,
+            TL_State    => tlState_sync,
             TDRE        => tdreStatus_int,
             UART_Select => uartSelect_int,
             ADDR        => uartAddr_int,
@@ -113,15 +137,8 @@ BEGIN
             stateDebug  => open
         );
 
-    ---------------------------------------------------------------------------
-    -- Write enable logic
-    ---------------------------------------------------------------------------
-    writeEnable_n <= uartRW_int;  -- RW=1 means read, RW=0 means write
-    writeEnable <= NOT writeEnable_n;
+    writeEnable <= NOT uartRW_int;
 
-    ---------------------------------------------------------------------------
-    -- Tristate buffer for data bus (write direction)
-    ---------------------------------------------------------------------------
     writeBuf: nBitTristate
         GENERIC MAP(n => 8)
         PORT MAP(
@@ -130,9 +147,6 @@ BEGIN
             output => dataBus_int
         );
 
-    ---------------------------------------------------------------------------
-    -- UART
-    ---------------------------------------------------------------------------
     uart: uartFSM
         PORT MAP(
             GClock        => GClock,
@@ -149,7 +163,17 @@ BEGIN
             RX_StateDebug => open
         );
 
-    -- Extract TDRE from data bus (bit 7 of SCSR)
-    tdreStatus_int <= dataBus_int(7);
+    addr1_n    <= NOT uartAddr_int(1);
+    addr_is_01 <= uartAddr_int(0) AND addr1_n;
+    scsr_valid <= uartSelect_int AND uartRW_int AND addr_is_01;
+
+    tdreLatchInst: resetToOneLatch
+        PORT MAP(
+            GClock  => GClock,
+            GReset  => GReset,
+            enable  => scsr_valid,
+            dataIn  => dataBus_int(7),
+            dataOut => tdreStatus_int
+        );
 
 END structural;

@@ -84,14 +84,11 @@ ARCHITECTURE structural of receiverFSM IS
 
 BEGIN
   
-  four  <= "0011";  -- Value 3 (for comparing after 4 counts: 0,1,2,3)
-  seven <= "0111";  -- Value 7 (for comparing after 8 counts: 0-7)
+  four  <= "0011";
+  seven <= "0111";
 
-  -- Sample counter enable: always counting (resets handled by resetCount)
   sampleCountEnable <= '1';
-  
-  -- Bit counter enable: must be enabled for RESET or for COUNTING
-  -- FIXED: Enable when resetting OR when shifting
+
   bitCountEnable <= shiftEN or resetBitCount;
 
   fsm: receiverFSMControl
@@ -113,7 +110,6 @@ BEGIN
       stateOut      => stateDebug 
     );
 
-  -- Sample counter: counts 0-7 for each bit period
   sampleCounter: nBitCounter
     GENERIC MAP(n => counterLen)
     PORT MAP(
@@ -144,14 +140,12 @@ BEGIN
       o_EQ => eightB8  
     );
 
-  -- Bit counter: counts 0-7 for 8 data bits
-  -- FIXED: Enable for both reset and shift operations
   bitCounter: nBitCounter
     GENERIC MAP(n => counterLen)
     PORT MAP(
       i_resetBar    => GReset,       
       i_resetCount  => resetBitCount,      
-      i_load        => bitCountEnable,  -- FIXED: Enable for reset OR shift
+      i_load        => bitCountEnable,
       i_clock       => BClkD8,
       o_Value       => bitCount
     );

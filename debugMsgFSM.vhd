@@ -71,20 +71,15 @@ ARCHITECTURE structural OF debugMsgFSM IS
     SIGNAL msgDone_int      : STD_LOGIC;
     SIGNAL addrBit0_int     : STD_LOGIC;
     
-    -- Counter reset: from FSM OR when count reaches 5 (wrap)
-    SIGNAL counterResetCombined : STD_LOGIC;
-    SIGNAL countIs5             : STD_LOGIC;
-    
-    -- Constant for comparison
-    SIGNAL five : STD_LOGIC_VECTOR(2 downto 0);
+    SIGNAL counterEnable    : STD_LOGIC;
+
+    SIGNAL seven            : STD_LOGIC_VECTOR(2 downto 0);
+    SIGNAL countIs7         : STD_LOGIC;
 
 BEGIN
 
-    five <= "101";  -- Value 5 for comparison
+    seven <= "111";
 
-    ---------------------------------------------------------------------------
-    -- State Change Detector
-    ---------------------------------------------------------------------------
     detector: stateChangeDetector
         PORT MAP(
             GClock       => GClock,
@@ -93,9 +88,6 @@ BEGIN
             stateChanged => stateChanged_int
         );
 
-    ---------------------------------------------------------------------------
-    -- FSM Control
-    ---------------------------------------------------------------------------
     control: debugMsgFSMControl
         PORT MAP(
             GClock       => GClock,
@@ -111,43 +103,30 @@ BEGIN
             stateOut     => stateDebug
         );
 
-    ---------------------------------------------------------------------------
-    -- Character Counter (0-5, wraps using comparator)
-    -- Uses existing nBitCounter with n=3
-    ---------------------------------------------------------------------------
-    
-    -- Reset counter when FSM says to OR when we've reached 5 and are counting
-    counterResetCombined <= counterReset_int OR (countIs5 AND counterEn_int);
-    
+    counterEnable <= counterEn_int OR counterReset_int;
+
     charCounter: nBitCounter
         GENERIC MAP(n => 3)
         PORT MAP(
             i_resetBar   => GReset,
-            i_resetCount => counterResetCombined,
-            i_load       => counterEn_int,
+            i_resetCount => counterReset_int,
+            i_load       => counterEnable,
             i_clock      => GClock,
             o_Value      => charIndex_int
         );
 
-    ---------------------------------------------------------------------------
-    -- Comparator to detect count = 5
-    ---------------------------------------------------------------------------
     countComparator: nBitComparator
         GENERIC MAP(n => 3)
         PORT MAP(
             i_Ai => charIndex_int,
-            i_Bi => five,
+            i_Bi => seven,
             o_GT => open,
             o_LT => open,
-            o_EQ => countIs5
+            o_EQ => countIs7
         );
 
-    -- Message is done when count reaches 5
-    msgDone_int <= countIs5;
+    msgDone_int <= countIs7;
 
-    ---------------------------------------------------------------------------
-    -- Character ROM
-    ---------------------------------------------------------------------------
     charRom: characterROM
         PORT MAP(
             TL_State  => TL_State,
@@ -155,9 +134,6 @@ BEGIN
             charOut   => DataOut
         );
 
-    ---------------------------------------------------------------------------
-    -- Address Output
-    ---------------------------------------------------------------------------
     ADDR(0) <= addrBit0_int;
     ADDR(1) <= '0';
 

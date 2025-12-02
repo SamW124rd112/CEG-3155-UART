@@ -52,9 +52,9 @@ BEGIN
       o_qBar      => n_y0
     );
 
-  sA <= n_y1 and n_y0;  -- 000
-  sB <= n_y1 and y0;    -- 001
-  sC <= y1 and n_y0;    -- 010
+  sA <= n_y1 and n_y0; 
+  sB <= n_y1 and y0;
+  sC <= y1 and n_y0; 
 
 
 
@@ -67,12 +67,6 @@ BEGIN
           (sC and TDR_WR);
 
   setTDRE <= TX_Load;
-
-  --clrTDRE <= TDR_WR;
-  --clrRDRF <= RDR_RD;
-  
-  --clrOE <= RDR_RD;
-  --clrFE <= RDR_RD;
 
   stateDebug(1) <= y1;
   stateDebug(0) <= y0;

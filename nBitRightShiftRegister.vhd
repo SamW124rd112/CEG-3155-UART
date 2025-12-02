@@ -37,8 +37,8 @@ BEGIN
 
 	MUX_MSB: oneBitMux2to1
 		PORT MAP (
-			x0 => i_shiftIn,           -- Shift mode: take serial input
-			x1 => i_loadValue(n-1),    -- Load mode: take parallel input
+			x0 => i_shiftIn,
+			x1 => i_loadValue(n-1),
 			s => i_load,
 			y => int_muxOut(n-1));
 	
@@ -51,12 +51,11 @@ BEGIN
 			o_q => int_Value(n-1),
 			o_qBar => int_notValue(n-1));
 
-	-- Remaining bits (n-2 down to 0): Mux selects between parallel load and cascade from higher bit
 	GEN_SHIFT: FOR i IN n-2 DOWNTO 0 GENERATE
 		MUX_BIT: oneBitMux2to1
 			PORT MAP (
-				x0 => int_Value(i+1),      -- Shift mode: cascade from higher bit
-				x1 => i_loadValue(i),      -- Load mode: take parallel input
+				x0 => int_Value(i+1),
+				x1 => i_loadValue(i),
 				s => i_load,
 				y => int_muxOut(i));
 		
@@ -69,8 +68,7 @@ BEGIN
 				o_q => int_Value(i),
 				o_qBar => int_notValue(i));
 	END GENERATE GEN_SHIFT;
-				 
-	-- Output assignments
+
 	o_Value <= int_Value;
 	o_shiftOut <= int_Value(0);
 

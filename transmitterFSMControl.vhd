@@ -74,39 +74,31 @@ BEGIN
       o_qBar      => open
     );
 
-  -- State decoding
-  sA <= n_y2 and n_y1 and n_y0;  -- 000
-  sB <= n_y2 and n_y1 and y0;    -- 001
-  sC <= n_y2 and y1 and n_y0;    -- 010
-  sD <= n_y2 and y1 and y0;      -- 011
-  sE <= y2 and n_y1 and n_y0;    -- 100
+  sA <= n_y2 and n_y1 and n_y0;
+  sB <= n_y2 and n_y1 and y0; 
+  sC <= n_y2 and y1 and n_y0;
+  sD <= n_y2 and y1 and y0; 
+  sE <= y2 and n_y1 and n_y0; 
 
-  -- MODIFIED: Always transition from E (don't wait for TDRE)
 w <= ((sA and not(TDRE))
     or (sB and TSRF)
     or sC
     or (sD and C8)
-    or sE);  -- CHANGED: was (sE and TDRE)
+    or sE); 
 
 n_w <= not(w);
 
--- MODIFIED i_d0: Add E→B transition when TDRE=0
--- States: A=000, B=001, C=010, D=011, E=100
--- From E: if TDRE=1 go to A(000), if TDRE=0 go to B(001)
 i_d0 <= (n_y2 and ((w and n_y0) or (n_w and y0))) 
-        or (sE and (not TDRE));  -- NEW TERM: E→B when TDRE=0
+        or (sE and (not TDRE)); 
 
--- i_d2 and i_d1 remain unchanged
 i_d2 <= (w and y1 and y0) or (n_w and y2);
 i_d1 <= (w and y0 and n_y1) or (y1 and n_y0) or (n_w and y1);
 
-  -- Output logic
   shiftEN <= sD;
   loadEN  <= sB;
   doneEN  <= sE;
   TXOut   <= sA or sB or sE;
 
-  -- State output
   stateOut(2) <= y2;
   stateOut(1) <= y1;
   stateOut(0) <= y0;

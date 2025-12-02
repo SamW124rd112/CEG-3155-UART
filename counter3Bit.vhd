@@ -5,10 +5,10 @@ ENTITY counter3Bit IS
     PORT(
         GClock     : IN  STD_LOGIC;
         GReset     : IN  STD_LOGIC;
-        i_reset    : IN  STD_LOGIC;  -- Synchronous reset
-        i_enable   : IN  STD_LOGIC;  -- Count enable
+        i_reset    : IN  STD_LOGIC;
+        i_enable   : IN  STD_LOGIC;
         o_count    : OUT STD_LOGIC_VECTOR(2 downto 0);
-        o_maxReach : OUT STD_LOGIC   -- High when count = 5
+        o_maxReach : OUT STD_LOGIC 
     );
 END counter3Bit;
 
@@ -34,37 +34,22 @@ ARCHITECTURE structural OF counter3Bit IS
     SIGNAL d2, d1, d0       : STD_LOGIC;
     SIGNAL next2, next1, next0 : STD_LOGIC;
     SIGNAL ff_enable        : STD_LOGIC;
-
-    -- For detecting count = 5 (binary 101)
     SIGNAL is_five : STD_LOGIC;
-    
-    -- Reset OR wrap condition
     SIGNAL do_reset : STD_LOGIC;
 
 BEGIN
 
-    -- Detect when count = 5 (101)
     is_five <= q2 AND (NOT q1) AND q0;
     
-    -- Reset counter when i_reset=1 OR when at 5 and enabled (wrap)
     do_reset <= i_reset OR (is_five AND i_enable);
 
-    ---------------------------------------------------------------------------
-    -- Next count logic (standard binary increment)
-    ---------------------------------------------------------------------------
-    
-    -- Bit 0: toggles every count
     next0 <= NOT q0;
 
-    -- Bit 1: toggles when bit 0 is 1
     next1 <= q1 XOR q0;
 
-    -- Bit 2: toggles when bits 1 and 0 are both 1
+
     next2 <= q2 XOR (q1 AND q0);
 
-    ---------------------------------------------------------------------------
-    -- Mux: select 0 when reset/wrap, else next value
-    ---------------------------------------------------------------------------
     mux_d0: oneBitMux2to1
         PORT MAP(
             s  => do_reset,
@@ -89,12 +74,8 @@ BEGIN
             y  => d2
         );
 
-    -- Enable for flip-flops: count when enabled OR reset when reset
     ff_enable <= i_enable OR i_reset;
 
-    ---------------------------------------------------------------------------
-    -- State Flip-Flops
-    ---------------------------------------------------------------------------
     ff_q0: enARdFF_2
         PORT MAP(
             i_resetBar => GReset,
@@ -124,10 +105,6 @@ BEGIN
             o_q        => q2,
             o_qBar     => n_q2
         );
-
-    ---------------------------------------------------------------------------
-    -- Outputs
-    ---------------------------------------------------------------------------
     o_count(0) <= q0;
     o_count(1) <= q1;
     o_count(2) <= q2;

@@ -11,7 +11,7 @@ ENTITY nBitLeftShiftRegister IS
 END nBitLeftShiftRegister;
 
 ARCHITECTURE rtl OF nBitLeftShiftRegister IS
-	SIGNAL int_Value, int_notValue : STD_LOGIC_VECTOR(n-1 downto 0);  -- Fixed!
+	SIGNAL int_Value, int_notValue : STD_LOGIC_VECTOR(n-1 downto 0);
 	
 	COMPONENT enARdFF_2
 		PORT(
@@ -27,25 +27,23 @@ BEGIN
 	LSB: enARdFF_2
 		PORT MAP (
 			i_resetBar => i_resetBar,
-			i_d => i_Value,           -- External input
+			i_d => i_Value,
 			i_enable => i_load,
 			i_clock => i_clock,
-			o_q => int_Value(0),      -- Outputs to bit 0
+			o_q => int_Value(0), 
 			o_qBar => int_notValue(0));
 
-	-- Remaining bits: each takes value from previous (lower) bit
 	GEN_SHIFT: FOR i IN 1 TO n-1 GENERATE
 		SHIFT_FF : enARdFF_2
 			PORT MAP (
 				i_resetBar => i_resetBar,
-				i_d => int_Value(i-1),    -- Input from lower bit
+				i_d => int_Value(i-1),
 				i_enable => i_load,
 				i_clock => i_clock,
-				o_q => int_Value(i),      -- Output to current bit
+				o_q => int_Value(i),
 				o_qBar => int_notValue(i));
 	END GENERATE GEN_SHIFT;
 
-	-- Output Driver
 	o_Value <= int_Value;
 
 END rtl;

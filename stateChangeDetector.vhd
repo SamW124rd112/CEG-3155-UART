@@ -27,7 +27,6 @@ ARCHITECTURE structural OF stateChangeDetector IS
 
 BEGIN
 
-    -- Register previous state
     ff_prev0: enARdFF_2
         PORT MAP(
             i_resetBar => GReset,
@@ -48,11 +47,9 @@ BEGIN
             o_qBar     => prevState_bar(1)
         );
 
-    -- XOR to detect change
     diff0 <= currentState(0) XOR prevState(0);
     diff1 <= currentState(1) XOR prevState(1);
 
-    -- OR the differences
     stateChanged <= diff0 OR diff1;
 
 END structural;

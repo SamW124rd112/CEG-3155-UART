@@ -5,7 +5,7 @@ ENTITY nBitCounter IS
     GENERIC(n : INTEGER := 4);
     PORT(
         i_resetBar    : IN  STD_LOGIC;
-        i_resetCount  : IN  STD_LOGIC;  -- Synchronous reset to zero
+        i_resetCount  : IN  STD_LOGIC;
         i_load        : IN  STD_LOGIC;
         i_clock       : IN  STD_LOGIC;
         o_Value       : OUT STD_LOGIC_VECTOR(n-1 downto 0));
@@ -38,29 +38,24 @@ BEGIN
 
     resetCount_n <= NOT i_resetCount;
 
-    -- Bit 0: always toggles when counting
     int_next(0) <= NOT int_q(0);
     int_carry(0) <= int_q(0);
 
-    -- Generate carry chain and toggle logic for bits 1 to n-1
     GEN_NEXT: FOR i IN 1 TO n-1 GENERATE
         int_carry(i) <= int_carry(i-1) AND int_q(i);
         int_next(i) <= int_q(i) XOR int_carry(i-1);
     END GENERATE;
 
-    -- Mux to select between 0 (reset) and next value (count)
-    -- When i_resetCount='1', select '0'; otherwise select int_next
     GEN_MUX: FOR i IN 0 TO n-1 GENERATE
         mux_reset: oneBitMux2to1
             PORT MAP(
                 s  => i_resetCount,
-                x0 => int_next(i),   -- Normal counting
-                x1 => '0',           -- Reset to 0
+                x0 => int_next(i),
+                x1 => '0',
                 y  => int_d(i)
             );
     END GENERATE;
 
-    -- Flip-flops for each bit
     GEN_FF: FOR i IN 0 TO n-1 GENERATE
         ff_bit: enARdFF_2
             PORT MAP(

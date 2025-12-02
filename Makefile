@@ -2,8 +2,8 @@ OBJ_DIR = obj
 ENTITY_DIR = entities
 OUTPUT_DIR = output
 TESTBENCH_DIR = tb
-ENTITY_NAME = tb_transmitterFSM
-TEST_NAME = tb_transmitterFSM
+ENTITY_NAME = tb_debugMsgFSM
+TEST_NAME = tb_debugMsgFSM
 
 # Source files
 VHDL_SOURCES = $(wildcard *.vhd)
