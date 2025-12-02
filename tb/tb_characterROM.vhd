@@ -72,10 +72,11 @@ BEGIN
             WAIT FOR 1 ns;
         END PROCEDURE;
 
+        -- Updated procedure for 7 characters (positions 0-6)
         PROCEDURE test_message(
             state : STD_LOGIC_VECTOR(1 downto 0);
             msg_name : STRING;
-            c0, c1, c2, c3, c4, c5 : STD_LOGIC_VECTOR(7 downto 0)
+            c0, c1, c2, c3, c4, c5, c6 : STD_LOGIC_VECTOR(7 downto 0)
         ) IS
         BEGIN
             REPORT "--- Testing message: " & msg_name & " ---";
@@ -98,38 +99,57 @@ BEGIN
             
             charIndex <= "101";
             check_char(c5, msg_name & " char 5");
+            
+            charIndex <= "110";
+            check_char(c6, msg_name & " char 6");
         END PROCEDURE;
 
     BEGIN
         REPORT "========================================";
         REPORT "Starting characterROM Testbench";
         REPORT "========================================";
-        REPORT "Expected messages:";
-        REPORT "  State 00: Mg Sr<CR>";
-        REPORT "  State 01: My Sr<CR>";
-        REPORT "  State 10: Mr Sg<CR>";
-        REPORT "  State 11: Mr Sy<CR>";
+        REPORT "Expected messages (with leading space):";
+        REPORT "  State 00: ' Mg Sr'<CR>";
+        REPORT "  State 01: ' My Sr'<CR>";
+        REPORT "  State 10: ' Mr Sg'<CR>";
+        REPORT "  State 11: ' Mr Sy'<CR>";
         REPORT "========================================";
 
         WAIT FOR 10 ns;
 
-        -- Test State 00: "Mg Sr\r"
-        test_message("00", "Mg Sr", CHAR_M, CHAR_g, CHAR_SP, CHAR_S, CHAR_r, CHAR_CR);
+        -- Test State 00: " Mg Sr\r"
+        -- Positions: SP, M, g, SP, S, r, CR
+        test_message("00", " Mg Sr", 
+            CHAR_SP, CHAR_M, CHAR_g, CHAR_SP, CHAR_S, CHAR_r, CHAR_CR);
 
         WAIT FOR 20 ns;
 
-        -- Test State 01: "My Sr\r"
-        test_message("01", "My Sr", CHAR_M, CHAR_y, CHAR_SP, CHAR_S, CHAR_r, CHAR_CR);
+        -- Test State 01: " My Sr\r"
+        -- Positions: SP, M, y, SP, S, r, CR
+        test_message("01", " My Sr", 
+            CHAR_SP, CHAR_M, CHAR_y, CHAR_SP, CHAR_S, CHAR_r, CHAR_CR);
 
         WAIT FOR 20 ns;
 
-        -- Test State 10: "Mr Sg\r"
-        test_message("10", "Mr Sg", CHAR_M, CHAR_r, CHAR_SP, CHAR_S, CHAR_g, CHAR_CR);
+        -- Test State 10: " Mr Sg\r"
+        -- Positions: SP, M, r, SP, S, g, CR
+        test_message("10", " Mr Sg", 
+            CHAR_SP, CHAR_M, CHAR_r, CHAR_SP, CHAR_S, CHAR_g, CHAR_CR);
 
         WAIT FOR 20 ns;
 
-        -- Test State 11: "Mr Sy\r"
-        test_message("11", "Mr Sy", CHAR_M, CHAR_r, CHAR_SP, CHAR_S, CHAR_y, CHAR_CR);
+        -- Test State 11: " Mr Sy\r"
+        -- Positions: SP, M, r, SP, S, y, CR
+        test_message("11", " Mr Sy", 
+            CHAR_SP, CHAR_M, CHAR_r, CHAR_SP, CHAR_S, CHAR_y, CHAR_CR);
+
+        WAIT FOR 20 ns;
+
+        -- Test unused position 7 (should output CR)
+        REPORT "--- Testing unused position 7 ---";
+        TL_State <= "00";
+        charIndex <= "111";
+        check_char(CHAR_CR, "Unused pos 7");
 
         WAIT FOR 20 ns;
 
