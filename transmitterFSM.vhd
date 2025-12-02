@@ -88,7 +88,6 @@ ARCHITECTURE structural OF transmitterFSM IS
   SIGNAL shiftEN_delayed          : STD_LOGIC;
   SIGNAL counterEN                : STD_LOGIC;
   
-  -- New signals for structural start bit fix
   SIGNAL internalState  : STD_LOGIC_VECTOR(2 downto 0);
   SIGNAL startBit       : STD_LOGIC;
   SIGNAL isStartState   : STD_LOGIC;
@@ -128,14 +127,10 @@ BEGIN
         stateOut    => internalState
     );
 
-  -- Decode START state (state C = "010")
-  -- isStartState = NOT(y2) AND y1 AND NOT(y0)
   isStartState <= (NOT internalState(2)) AND internalState(1) AND (NOT internalState(0));
 
-  -- Constant signal for start bit
   startBit <= '0';
 
-  -- NEW MUX: Select between start bit and data bit
   startBitMux: oneBitMux2to1
     PORT MAP(
       s   => isStartState,
@@ -144,7 +139,6 @@ BEGIN
       y   => txBitMuxed
     );
 
-  -- MODIFIED: Original mux now uses muxed signal
   txMux: oneBitMux2to1
     PORT MAP(
       s   => TXOut, 

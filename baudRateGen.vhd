@@ -49,74 +49,65 @@ ARCHITECTURE structural OF baudRateGen IS
         );
     END COMPONENT;
 
-    -- Signals for main counter (divide by 40)
-    SIGNAL count_40                     : STD_LOGIC_VECTOR(5 downto 0);
-    SIGNAL compare_value_40             : STD_LOGIC_VECTOR(5 downto 0);
-    SIGNAL tc_40                        : STD_LOGIC;
-    
-    -- Signals for fast counter (divide by 5)
-    SIGNAL count_5                      : STD_LOGIC_VECTOR(2 downto 0);
-    SIGNAL compare_value_5              : STD_LOGIC_VECTOR(2 downto 0);
-    SIGNAL tc_5                         : STD_LOGIC;
-    
-    -- Main divider chain (for baudClk)
-    SIGNAL div80_q, div80_qBar          : STD_LOGIC;
+    SIGNAL count_80                     : STD_LOGIC_VECTOR(6 downto 0);
+    SIGNAL compare_value_80             : STD_LOGIC_VECTOR(6 downto 0);
+    SIGNAL tc_80                        : STD_LOGIC;
+
+    SIGNAL count_10                     : STD_LOGIC_VECTOR(3 downto 0);
+    SIGNAL compare_value_10             : STD_LOGIC_VECTOR(3 downto 0);
+    SIGNAL tc_10                        : STD_LOGIC;
+ 
+    SIGNAL div160_q, div160_qBar        : STD_LOGIC;
     SIGNAL div_chain_q, div_chain_qBar  : STD_LOGIC_VECTOR(7 downto 0);
-    
-    -- Fast divider chain (for BClkD8)
-    SIGNAL div10_q, div10_qBar          : STD_LOGIC;
+
+    SIGNAL div20_q, div20_qBar          : STD_LOGIC;
     SIGNAL fast_chain_q, fast_chain_qBar: STD_LOGIC_VECTOR(7 downto 0);
     
     SIGNAL BClk_int                     : STD_LOGIC;
     SIGNAL t_high                       : STD_LOGIC;
-    SIGNAL o_GT_40, o_LT_40             : STD_LOGIC;
-    SIGNAL o_GT_5, o_LT_5               : STD_LOGIC;
+    SIGNAL o_GT_80, o_LT_80             : STD_LOGIC;
+    SIGNAL o_GT_10, o_LT_10             : STD_LOGIC;
 
 BEGIN
 
-    t_high          <= '1';
-    compare_value_40 <= "100111";  -- 39 in binary (count 0-39 = 40 states)
-    compare_value_5  <= "100";     -- 4 in binary (count 0-4 = 5 states)
+    t_high           <= '1';
+    compare_value_80 <= "1001111"; 
+    compare_value_10 <= "1001";  
 
-    ---------------------------------------------------------------------------
-    -- MAIN COUNTER: Divides by 40 (for baudClk generation)
-    ---------------------------------------------------------------------------
-    counter40: nBitCounter
-        GENERIC MAP(n => 6)
+    counter80: nBitCounter
+        GENERIC MAP(n => 7)
         PORT MAP(
             i_resetBar    => G_Reset,
-            i_resetCount  => tc_40,
+            i_resetCount  => tc_80,
             i_load        => '1',
             i_clock       => in_Clock,
-            o_Value       => count_40
+            o_Value       => count_80
         );
 
-    comp40: nBitComparator
-        GENERIC MAP(n => 6)
+    comp80: nBitComparator
+        GENERIC MAP(n => 7)
         PORT MAP(
-            i_Ai  => count_40,
-            i_Bi  => compare_value_40,
-            o_GT  => o_GT_40,
-            o_LT  => o_LT_40,
-            o_EQ  => tc_40
+            i_Ai  => count_80,
+            i_Bi  => compare_value_80,
+            o_GT  => o_GT_80,
+            o_LT  => o_LT_80,
+            o_EQ  => tc_80
         );
 
-    -- TFF for divide by 80 (40 * 2)
-    TFF_DIV80: tFF_2
+    TFF_DIV160: tFF_2
         PORT MAP(
             i_resetBar => G_Reset,
             i_t        => t_high,
-            i_clock    => tc_40,
-            o_q        => div80_q,
-            o_qBar     => div80_qBar
+            i_clock    => tc_80,
+            o_q        => div160_q,
+            o_qBar     => div160_qBar
         );
 
-    -- Main TFF chain for baudClk
     TFF0: tFF_2
         PORT MAP(
             i_resetBar => G_Reset,
             i_t        => t_high,
-            i_clock    => div80_q,
+            i_clock    => div160_q,
             o_q        => div_chain_q(0),
             o_qBar     => div_chain_qBar(0)
         );
@@ -184,46 +175,41 @@ BEGIN
             o_qBar     => div_chain_qBar(7)
         );
 
-    ---------------------------------------------------------------------------
-    -- FAST COUNTER: Divides by 5 (for BClkD8 generation)
-    -- Since 40 = 8 * 5, this gives exact 8:1 ratio
-    ---------------------------------------------------------------------------
-    counter5: nBitCounter
-        GENERIC MAP(n => 3)
+
+    counter10: nBitCounter
+        GENERIC MAP(n => 4)
         PORT MAP(
             i_resetBar    => G_Reset,
-            i_resetCount  => tc_5,
+            i_resetCount  => tc_10,
             i_load        => '1',
             i_clock       => in_Clock,
-            o_Value       => count_5
+            o_Value       => count_10
         );
 
-    comp5: nBitComparator
-        GENERIC MAP(n => 3)
+    comp10: nBitComparator
+        GENERIC MAP(n => 4)
         PORT MAP(
-            i_Ai  => count_5,
-            i_Bi  => compare_value_5,
-            o_GT  => o_GT_5,
-            o_LT  => o_LT_5,
-            o_EQ  => tc_5
+            i_Ai  => count_10,
+            i_Bi  => compare_value_10,
+            o_GT  => o_GT_10,
+            o_LT  => o_LT_10,
+            o_EQ  => tc_10
         );
 
-    -- TFF for divide by 10 (5 * 2)
-    TFF_DIV10: tFF_2
+    TFF_DIV20: tFF_2
         PORT MAP(
             i_resetBar => G_Reset,
             i_t        => t_high,
-            i_clock    => tc_5,
-            o_q        => div10_q,
-            o_qBar     => div10_qBar
+            i_clock    => tc_10,
+            o_q        => div20_q,
+            o_qBar     => div20_qBar
         );
 
-    -- Fast TFF chain for BClkD8
     TFF_FAST0: tFF_2
         PORT MAP(
             i_resetBar => G_Reset,
             i_t        => t_high,
-            i_clock    => div10_q,
+            i_clock    => div20_q,
             o_q        => fast_chain_q(0),
             o_qBar     => fast_chain_qBar(0)
         );
@@ -291,43 +277,39 @@ BEGIN
             o_qBar     => fast_chain_qBar(7)
         );
 
-    ---------------------------------------------------------------------------
-    -- BAUD CLOCK MUX: Selects from main divider chain
-    ---------------------------------------------------------------------------
+
     MUX_BAUD: oneBitMux8to1
         PORT MAP(
             s0 => SEL(0), 
             s1 => SEL(1), 
             s2 => SEL(2),                  
-            x0 => div_chain_q(0),   -- 3200 ns  (fastest)
-            x1 => div_chain_q(1),   -- 6400 ns
-            x2 => div_chain_q(2),   -- 12800 ns
-            x3 => div_chain_q(3),   -- 25600 ns
-            x4 => div_chain_q(4),   -- 51200 ns
-            x5 => div_chain_q(5),   -- 102400 ns
-            x6 => div_chain_q(6),   -- 204800 ns
-            x7 => div_chain_q(7),   -- 409600 ns (slowest)
+            x0 => div_chain_q(0), 
+            x1 => div_chain_q(1), 
+            x2 => div_chain_q(2),  
+            x3 => div_chain_q(3), 
+            x4 => div_chain_q(4),  
+            x5 => div_chain_q(5),  
+            x6 => div_chain_q(6),  
+            x7 => div_chain_q(7),  
             y  => BClk_int
         );
 
     baudClk <= BClk_int;
 
-    ---------------------------------------------------------------------------
-    -- BCLKD8 MUX: Selects from fast divider chain (exactly 8x faster)
-    ---------------------------------------------------------------------------
+
     MUX_BCLKD8: oneBitMux8to1
         PORT MAP(
             s0 => SEL(0), 
             s1 => SEL(1), 
             s2 => SEL(2),                  
-            x0 => fast_chain_q(0),  -- 400 ns   = 3200/8  ✓
-            x1 => fast_chain_q(1),  -- 800 ns   = 6400/8  ✓
-            x2 => fast_chain_q(2),  -- 1600 ns  = 12800/8 ✓
-            x3 => fast_chain_q(3),  -- 3200 ns  = 25600/8 ✓
-            x4 => fast_chain_q(4),  -- 6400 ns  = 51200/8 ✓
-            x5 => fast_chain_q(5),  -- 12800 ns = 102400/8 ✓
-            x6 => fast_chain_q(6),  -- 25600 ns = 204800/8 ✓
-            x7 => fast_chain_q(7),  -- 51200 ns = 409600/8 ✓
+            x0 => fast_chain_q(0),  
+            x1 => fast_chain_q(1), 
+            x2 => fast_chain_q(2), 
+            x3 => fast_chain_q(3),  
+            x4 => fast_chain_q(4),
+            x5 => fast_chain_q(5), 
+            x6 => fast_chain_q(6), 
+            x7 => fast_chain_q(7),   
             y  => BClkD8
         );
 

@@ -195,14 +195,16 @@ BEGIN
         
         check_state(STATE_A, "Reset to State A");
 
-        -- ========== TEST 2: State A -> B (Start bit) ==========
+       -- ========== TEST 2: State A -> B (Start bit) ==========
         REPORT "TEST 2: State A -> B (Start bit detected)";
         RXD <= '0';
         WAIT FOR CLK_PERIOD;
         WAIT FOR 1 ns;
-        
+
         check_state(STATE_B, "Transition A->B");
-        check_signal(resetBitCount, '1', "resetBitCount in B");
+        -- CHANGED: resetBitCount is '1' in state A, '0' in state B
+        -- The counter is already 0 from being reset in state A
+        check_signal(resetBitCount, '0', "resetBitCount=0 in B (was reset in A)");
 
         -- ========== TEST 3: State B -> C (fourB8) ==========
         REPORT "TEST 3: State B -> C (fourB8 asserted)";

@@ -2,10 +2,10 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 
 ENTITY nBitComparator IS
-  GENERIC(n: INTEGER := 4);
-  PORT(
-    i_Ai, i_Bi    : IN  STD_LOGIC_VECTOR(n-1 downto 0);
-    o_GT, o_LT, o_EQ : OUT STD_LOGIC);
+        GENERIC(n : INTEGER := 4);
+        PORT(
+                i_Ai, i_Bi                            : IN      STD_LOGIC_VECTOR(n-1 downto 0);
+                o_GT, o_LT, o_EQ                        : OUT   STD_LOGIC);
 END nBitComparator;
 
 ARCHITECTURE rtl OF nBitComparator IS
@@ -13,11 +13,10 @@ ARCHITECTURE rtl OF nBitComparator IS
 
   COMPONENT oneBitComparator IS
     PORT(
-      i_GTPrevious, i_LTPrevious : IN  STD_LOGIC;
-      i_Ai, i_Bi : IN  STD_LOGIC;
-      o_GT, o_LT : OUT STD_LOGIC);
-  END COMPONENT;
-
+      i_GTPrevious, i_LTPrevious        : IN    STD_LOGIC;
+      i_Ai, i_Bi                        : IN    STD_LOGIC;
+      o_GT, o_LT                        : OUT   STD_LOGIC);
+  END COMPONENT oneBitComparator;
 BEGIN
 
   MSBComparator: oneBitComparator
@@ -44,6 +43,6 @@ BEGIN
 
   o_GT <= n_GT(0);
   o_LT <= n_LT(0);
-  o_EQ <= NOT (n_GT(0) OR n_LT(0));
+  o_EQ <= n_GT(0) nor n_LT(0);
 
 END rtl;

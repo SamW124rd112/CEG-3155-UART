@@ -29,7 +29,6 @@ ARCHITECTURE structural OF receiverFSMControl IS
 
 BEGIN
 
-  -- State flip-flops (now synchronized to BClkD8)
   dFF_y2: enARdFF_2
     PORT MAP(
       i_resetBar  => G_Reset,
@@ -60,46 +59,36 @@ BEGIN
       o_qBar      => n_y0
     );
 
-  -- State decode
-  sA <= n_y2 and n_y1 and n_y0;  -- 000: Idle
-  sB <= n_y2 and n_y1 and y0;    -- 001: Wait for mid-start
-  sC <= n_y2 and y1 and n_y0;    -- 010: Sample data bits
-  sD <= n_y2 and y1 and y0;      -- 011: Check stop bit
-  sE <= y2 and n_y1 and n_y0;    -- 100: Load RDR
+  sA <= n_y2 and n_y1 and n_y0; 
+  sB <= n_y2 and n_y1 and y0; 
+  sC <= n_y2 and y1 and n_y0; 
+  sD <= n_y2 and y1 and y0; 
+  sE <= y2 and n_y1 and n_y0; 
 
-  -- Transition signal
-  w <= ((sA and not(RXD))              -- Start bit detected
-       or (sB and fourB8)               -- Middle of start bit reached
-       or (sC and eightB8 and bitC8)    -- All 8 data bits sampled
-       or (sD and eightB8)              -- Stop bit period complete
-       or (sE));                        -- Always leave load state
+  w <= ((sA and not(RXD)) 
+       or (sB and fourB8)  
+       or (sC and eightB8 and bitC8)  
+       or (sD and eightB8) 
+       or (sE)); 
 
   n_w <= not(w);
 
-  -- Next state logic
   i_d2 <= (w and y1 and y0) or (n_w and y2);
   i_d1 <= (w and y0 and n_y1) or (y1 and n_y0) or (n_w and y1);
   i_d0 <= n_y2 and ((w and n_y0) or (n_w and y0));
 
-  -- FIXED: Combinational outputs (no register delay)
-  -- Reset sample counter: at idle, after finding mid-start, after each sample
   resetCount <= sA or (sB and fourB8) or (sC and eightB8);
-  
-  -- FIXED: Reset bit counter only in idle state (before new reception)
+
   resetBitCount <= sA;
-  
-  -- Shift enable: sample data when in state C at sample point
+
   shiftEN <= sC and eightB8;
-  
-  -- Load enable: transfer RSR to RDR in state E
+
   loadEN <= sE;
 
-  -- Status Flags
   setRDRF <= sE and not(RDRF);
   setOE   <= sE and RDRF;
   setFE   <= sD and eightB8 and not(RXD);
 
-  -- State debug output
   stateOut(2) <= y2;
   stateOut(1) <= y1;
   stateOut(0) <= y0;

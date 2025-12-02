@@ -27,8 +27,6 @@ ARCHITECTURE structural OF statusRegister IS
         );
     END COMPONENT;
 
-    -- TDRE uses INVERTED internal storage so it's 1 after reset
-    -- tdre_n_int = 0 means TDRE = 1, tdre_n_int = 1 means TDRE = 0
     SIGNAL tdre_n_int, tdre_n_next : STD_LOGIC;
     SIGNAL tdre_int : STD_LOGIC;
     
@@ -40,17 +38,8 @@ ARCHITECTURE structural OF statusRegister IS
 
 BEGIN
 
-    ---------------------------------------------------------------------------
-    -- TDRE: Uses inverted storage so reset gives TDRE=1
-    -- Store tdre_n = NOT(TDRE)
-    -- After reset: tdre_n = 0, therefore TDRE = 1 (empty, ready for data)
-    ---------------------------------------------------------------------------
-    
-    -- Logic: tdre_n_next = (NOT setTDRE) AND (tdre_n_int OR clrTDRE)
-    -- setTDRE forces tdre_n to 0 (TDRE=1)
-    -- clrTDRE forces tdre_n to 1 (TDRE=0)
-    -- Otherwise hold current value
-    tdre_n_next <= (NOT setTDRE) AND (tdre_n_int OR clrTDRE);
+
+    tdre_n_next <= clrTDRE OR ((NOT setTDRE) AND tdre_n_int);
     
     tdre_n_ff: enARdFF_2
         PORT MAP(
@@ -59,12 +48,8 @@ BEGIN
             i_enable   => '1',
             i_clock    => GClock,
             o_q        => tdre_n_int,
-            o_qBar     => tdre_int    -- This gives us TDRE directly!
+            o_qBar     => tdre_int
         );
-
-    ---------------------------------------------------------------------------
-    -- RDRF, OE, FE: Normal storage (0 after reset is correct)
-    ---------------------------------------------------------------------------
 
     clr_rdrf_n <= NOT clrRDRF;
     clr_oe_n   <= NOT clrOE;
@@ -108,9 +93,6 @@ BEGIN
             o_qBar     => fe_bar
         );
 
-    ---------------------------------------------------------------------------
-    -- Outputs
-    ---------------------------------------------------------------------------
     TDRE <= tdre_int;
     RDRF <= rdrf_int;
     OE   <= oe_int;

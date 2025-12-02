@@ -103,7 +103,7 @@ BEGIN
 		WAIT FOR clk_period*2;
 		-- Should be all zeros
 		
-		REPORT "Testbench completed successfully!";
+		ASSERT FALSE REPORT "Testbench Completed Successfully" SEVERITY FAILURE;
 		WAIT;
 	END PROCESS;
 	

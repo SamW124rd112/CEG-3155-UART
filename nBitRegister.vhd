@@ -30,10 +30,10 @@ BEGIN
 		REG_FF : enARdFF_2
 			PORT MAP (
 				i_resetBar => i_resetBar,
-				i_d => i_Value(i),    -- Input from lower bit
+				i_d => i_Value(i),
 				i_enable => i_load,
 				i_clock => i_clock,
-				o_q => int_Value(i),      -- Output to current bit
+				o_q => int_Value(i),
 				o_qBar => int_notValue(i));
 	END GENERATE GEN_REG;
 

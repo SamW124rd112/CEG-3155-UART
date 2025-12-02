@@ -18,7 +18,6 @@ ARCHITECTURE structural OF interruptLogic IS
 
 BEGIN
 
-    -- IRQ = (RIE AND (RDRF OR OE)) OR (TIE AND TDRE)
     rdrf_or_oe <= RDRF OR OE;
     rx_int     <= RIE AND rdrf_or_oe;
     tx_int     <= TIE AND TDRE;

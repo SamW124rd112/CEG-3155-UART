@@ -62,6 +62,8 @@ BEGIN
 		i_load <= '1';
 		WAIT FOR 40 ns;
 
+		ASSERT FALSE REPORT "Simulation Completed Successfully" SEVERITY FAILURE;
+
 		WAIT;
 	END PROCESS;
 

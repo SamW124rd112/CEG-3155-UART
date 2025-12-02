@@ -1,13 +1,9 @@
---------------------------------------------------------------------------------
--- Title         : Type T Flip-Flop - 2nd realization
--- Project       : VHDL Synthesis Overview
---------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 
 ENTITY tFF_2 IS
 	PORT(
-		i_resetBar	: IN	STD_LOGIC;  -- ADDED: Active low reset
+		i_resetBar	: IN	STD_LOGIC;
 		i_t			: IN	STD_LOGIC;
 		i_clock		: IN	STD_LOGIC;
 		o_q, o_qBar	: OUT	STD_LOGIC);
@@ -32,9 +28,9 @@ BEGIN
 
 dFlipFlop: enARdFF_2
 	PORT MAP (
-			  i_resetBar => i_resetBar,  -- Connect reset
+			  i_resetBar => i_resetBar, 
 			  i_d        => int_muxOutput, 
-			  i_enable   => enable_high,  -- Always enabled
+			  i_enable   => enable_high,
 			  i_clock    => i_clock,
 			  o_q        => int_q,
 	          o_qBar     => int_qBar);
@@ -42,7 +38,6 @@ dFlipFlop: enARdFF_2
 int_muxOutput	<=	int_q when i_t = '0' else
 					int_qBar;
 
-	-- Output Driver
 	o_q	<= int_q;
 	o_qBar	<= int_qBar;
 
