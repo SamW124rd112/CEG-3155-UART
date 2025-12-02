@@ -17,7 +17,7 @@ ARCHITECTURE structural OF trafficLightController IS
     CONSTANT MST_MAX : STD_LOGIC_VECTOR(3 downto 0) := "0101";
     CONSTANT SST_MAX : STD_LOGIC_VECTOR(3 downto 0) := "0011";
 
-    SIGNAL int_SSCS, int_Compare : STD_LOGIC;
+    SIGNAL int_SSCS, int_SSCS_n, int_Compare : STD_LOGIC;
     SIGNAL int_s0, int_s1 : STD_LOGIC;
     SIGNAL int_sA, int_sB, int_sC, int_sD : STD_LOGIC;
     SIGNAL int_MST, int_SST, int_MSC, int_SSC : STD_LOGIC_VECTOR(3 downto 0);
@@ -92,7 +92,8 @@ BEGIN
     resetCount_MSC <= NOT int_sA;  
     resetCount_MST <= NOT int_sB; 
     resetCount_SSC <= NOT int_sC; 
-    resetCount_SST <= NOT int_sD;  
+    resetCount_SST <= NOT int_sD;
+    int_SSCS_n     <= NOT int_SSCS;  
 
 
     counterMSC: nBitCounter
@@ -172,7 +173,7 @@ BEGIN
     controller: fsmController
         PORT MAP(
             CounterReachedMax => int_Compare,
-            SSCS              => NOT int_SSCS,
+            SSCS              => int_SSCS_n,
             G_Clock           => G_Clock,
             G_Reset           => G_Reset,
             MSTL              => MSTL,

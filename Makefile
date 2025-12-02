@@ -24,7 +24,7 @@ init:
 # 2. Analyze (Compile)
 analyze: init
 	@echo "--- Analyzing Core Sources ---"
-	ghdl -a --workdir=$(OBJ_DIR) $(VHDL_SOURCES)
+	ghdl -a -fsynopsys --workdir=$(OBJ_DIR) $(VHDL_SOURCES)
 	@echo "--- Analyzing Testbenches ---"
 	# We use || true so compilation continues even if one testbench is broken
 	ghdl -a --workdir=$(OBJ_DIR) $(ALL_TB_SOURCES) || true
